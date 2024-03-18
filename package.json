@@ -13,13 +13,13 @@
     "react-scripts": "5.0.1",
     "web-vitals": "^2.1.4"
   },
+  "homepage": "https://nhakt.github.io/chat",
   "scripts": {
+    "deploy": "rm -rf docs && npm run build && mv build docs",
     "start": "react-scripts start",
-    "build": "react-scripts build && mv build docs",
+    "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject",
-    "predeploy": "npm run build",
-    "deploy": "gh-pages -d build"
+    "eject": "react-scripts eject"
   },
   "eslintConfig": {
     "extends": [
@@ -39,7 +39,6 @@
       "last 1 safari version"
     ]
   },
-  "homepage": "https://nhakt.github.io/chat",
   "devDependencies": {
     "gh-pages": "^6.1.1"
   }
