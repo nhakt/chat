@@ -2,6 +2,9 @@ import React, { useState, useEffect, useRef } from 'react';
 import firebase from 'firebase/compat/app';
 import 'firebase/compat/firestore';
 import "firebase/compat/auth";
+import dayjs from 'dayjs';
+
+import './ChatApp.css';
 
 // Firebaseの設定
 const firebaseConfig = {
@@ -48,7 +51,7 @@ const ChatApp = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        if (password !== '12345') {
+        if (password !== '10s5-3') {
             alert('パスワードが正しくありません');
             return;
         }
@@ -76,7 +79,30 @@ const ChatApp = () => {
             uid,
             timestamp: firebase.firestore.FieldValue.serverTimestamp(),
         });
+
         setMessage('');
+    };
+
+    const MessageList = ({ messages }) => {
+        return (
+            <div>
+                {messages.map((message) => (
+                    <div key={message.id} class="container">
+                        <div class="item"><span>{formatTimestamp(message.timestamp)}</span></div>
+                        <div class="item"><strong>{message.username}:</strong> {message.text}</div>
+                    </div>
+                )).reverse()}
+            </div>
+        );
+    };
+
+    const formatTimestamp = (timestamp) => {
+        if (timestamp != null) {
+            const date = dayjs(timestamp.toDate());
+            return date.format('YYYY-MM-DDTHH:mm');
+        } else {
+            return '';
+        }
     };
 
     return (
@@ -113,11 +139,7 @@ const ChatApp = () => {
                         <button type="submit">送信</button>
                     </form>
                     <div>
-                        {messages.map((message) => (
-                            <div key={message.id}>
-                                <strong>{message.username}:</strong> {message.text}
-                            </div>
-                        ))}
+                        <MessageList messages={messages} />
                         <div ref={bottomRef} />
                     </div>
                 </div>
