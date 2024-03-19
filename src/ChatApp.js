@@ -3,8 +3,13 @@ import firebase from 'firebase/compat/app';
 import 'firebase/compat/firestore';
 import "firebase/compat/auth";
 import dayjs from 'dayjs';
+import notificationSound from './notification.mp3';
+import { FaBell } from "react-icons/fa"
+import { FaBellSlash } from "react-icons/fa"
 
 import './ChatApp.css';
+
+const audio = new Audio(notificationSound);
 
 // Firebaseの設定
 const firebaseConfig = {
@@ -30,17 +35,34 @@ const ChatApp = () => {
     const [password, setPassword] = useState('');
     const bottomRef = useRef(null);
 
+    //notify
+    const [isNotificationEnabled, setIsNotificationEnabled] = useState(true);
+    const toggleNotification = () => {
+        setIsNotificationEnabled((prev) => !prev);
+    };
+
     useEffect(() => {
         const unsubscribe = db.collection('messages').orderBy('timestamp').onSnapshot((snapshot) => {
             const newMessages = snapshot.docs.map((doc) => ({
                 id: doc.id,
+                message: doc.message,
                 ...doc.data(),
             }));
             setMessages(newMessages);
+
+            //play sound
+            const isNotOwnMessage = newMessages[newMessages.length - 1]?.uid !== user?.uid;
+            if (isNotOwnMessage && isNotificationEnabled) {
+                play(audio);
+            }
         });
 
         return unsubscribe;
-    }, []);
+    }, [user, isNotificationEnabled]);
+
+    function play(audio) {
+        audio.play();
+    }
 
     useEffect(() => {
         if (bottomRef.current) {
@@ -87,9 +109,12 @@ const ChatApp = () => {
         return (
             <div>
                 {messages.map((message) => (
-                    <div key={message.id} class="container">
-                        <div class="item"><span>{formatTimestamp(message.timestamp)}</span></div>
-                        <div class="item"><strong>{message.username}:</strong> {message.text}</div>
+                    <div key={message.id} className="message-container">
+                        <div className="message-header">
+                            <strong className="username">{message.username}:</strong>
+                            <div className="message-text">{message.text}</div>
+                            <span className="timestamp">{formatTimestamp(message.timestamp)}</span>
+                        </div>
                     </div>
                 )).reverse()}
             </div>
@@ -99,7 +124,7 @@ const ChatApp = () => {
     const formatTimestamp = (timestamp) => {
         if (timestamp != null) {
             const date = dayjs(timestamp.toDate());
-            return date.format('YYYY-MM-DDTHH:mm');
+            return date.format('YYYY-MM-DD HH:mm');
         } else {
             return '';
         }
@@ -131,12 +156,16 @@ const ChatApp = () => {
                     <h1>チャット</h1>
                     <form onSubmit={sendMessage}>
                         <input
+                            className="input-field"
                             type="text"
                             placeholder="メッセージを入力"
                             value={message}
                             onChange={(e) => setMessage(e.target.value)}
                         />
-                        <button type="submit">送信</button>
+                        <button className="button-field" type="submit">送信</button>
+                        <button className="button-field" type="button" onClick={toggleNotification}>
+                            {isNotificationEnabled ? (<FaBell />) : (<FaBellSlash />)}
+                        </button>
                     </form>
                     <div>
                         <MessageList messages={messages} />
