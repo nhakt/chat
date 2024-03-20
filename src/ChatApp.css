@@ -6,22 +6,42 @@ h1 {
 /* inputとbuttonの高さを14pxに設定 */
 .input-field,
 .button-field {
-  height: 42px;
+  height: 48px;
   width: 256px;
   vertical-align : top;
+  margin-left: 8px;
+  margin-top: 16px;
+}
+
+.input-field-file {
+  height: 48px;
+  vertical-align : top;
+  margin-left: 8px;
+  margin-top: 16px;
 }
 
 /* ボタンのアイコンの高さも調整 */
-.button-field {
+.button-field {  
   height: 48px;
   width: 48px;
   vertical-align : top;
+  margin-top: 16px;
+}
+
+.button-field-login {  
+  height: 48px;
+  width: 128px;
+  margin-left: 8px;
+  margin-top: 16px;
+}
+
+.message-area {  
+  margin-top: 16px;
 }
 
 .message-container {
   display: flex;
   flex-direction: column;
-  margin-bottom: 0px;
 }
 
 .message-header {
@@ -62,13 +82,20 @@ h1 {
   height: 100%;
   overflow: auto;
   background-color: rgba(0, 0, 0, 0.9);
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .image-modal-content {
-  margin: auto;
-  display: block;
-  max-width: 80%;
-  max-height: 80%;
+  max-width: 90vw; /* 画面幅の90%までサイズを制限 */
+  max-height: 90vh; /* 画面高さの90%までサイズを制限 */
+}
+
+.image-modal-content img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain; /* 画像の縦横比を維持 */
 }
 
 .close {

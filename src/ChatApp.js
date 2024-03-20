@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import firebase from 'firebase/compat/app';
 import 'firebase/compat/firestore';
 import "firebase/compat/auth";
@@ -39,7 +39,6 @@ const ChatApp = () => {
     const [messages, setMessages] = useState([]);
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
-    const bottomRef = useRef(null);
 
     //notify
     const [isNotificationEnabled, setIsNotificationEnabled] = useState(true);
@@ -69,12 +68,6 @@ const ChatApp = () => {
     function play(audio) {
         audio.play();
     }
-
-    useEffect(() => {
-        if (bottomRef.current) {
-            bottomRef.current.scrollIntoView({ behavior: 'smooth' });
-        }
-    }, [messages]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -146,6 +139,7 @@ const ChatApp = () => {
         }
 
         setMessage('');
+        handleRemoveImage();
     };
 
     //image
@@ -175,6 +169,12 @@ const ChatApp = () => {
         setShowImageModal(true);
     };
 
+    const handleRemoveImage = () => {
+        const obj = document.getElementById('f');
+        obj.value = '';
+        setImage(null);
+    };
+
     const MessageList = ({ messages }) => {
         return (
             <div>
@@ -192,8 +192,8 @@ const ChatApp = () => {
                             ) : (
                                 <div className="message-text">{message.text}</div>
                             )}
+                            <span className="timestamp">{formatTimestamp(message.timestamp)}</span>
                         </div>
-                        <span className="timestamp">{formatTimestamp(message.timestamp)}</span>
                     </div>
                 )).reverse()}
             </div>
@@ -216,18 +216,21 @@ const ChatApp = () => {
                     <h1>ログイン</h1>
                     <form onSubmit={handleSubmit}>
                         <input
+                            className="input-field"
                             type="text"
                             placeholder="ユーザ名"
                             value={username}
                             onChange={(e) => setUsername(e.target.value)}
                         />
                         <input
+                            className="input-field"
                             type="password"
                             placeholder="パスワード"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                         />
-                        <button type="submit">ログイン</button>
+                        <br />
+                        <button class="button-field-login" type="submit">ログイン</button>
                     </form>
                 </div>
             ) : (
@@ -237,7 +240,7 @@ const ChatApp = () => {
                         <input
                             className="input-field"
                             type="text"
-                            placeholder="メッセージを入力"
+                            placeholder="メッセージを入力 or 画像を貼り付け"
                             value={message}
                             onChange={(e) => setMessage(e.target.value)}
                             onPaste={handlePaste}
@@ -247,9 +250,17 @@ const ChatApp = () => {
                             {isNotificationEnabled ? (<FaBell />) : (<FaBellSlash />)}
                         </button>
                         <br />
-                        {image && <p>image set</p>}
-                        <br />
+                        {image && (
+                            <div>
+                                <img src={URL.createObjectURL(image)} alt="Preview" style={{ maxWidth: '200px' }} />
+                                <button type="button" onClick={handleRemoveImage}>
+                                    &times;
+                                </button>
+                            </div>
+                        )}
                         <input
+                            class="input-field-file"
+                            id="f"
                             type="file"
                             accept="image/*"
                             onChange={handleImageUpload}
@@ -257,7 +268,6 @@ const ChatApp = () => {
                     </form>
                     <div>
                         <MessageList messages={messages} />
-                        <div ref={bottomRef} />
                     </div>
                     {showImageModal && (
                         <div className="image-modal">
