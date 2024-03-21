@@ -7,6 +7,7 @@ import dayjs from 'dayjs';
 import notificationSound from './notification.mp3';
 import { FaBell } from "react-icons/fa"
 import { FaBellSlash } from "react-icons/fa"
+import Linkify from 'react-linkify';
 
 import './ChatApp.css';
 
@@ -223,7 +224,16 @@ const ChatApp = () => {
                                     onClick={() => handleImageClick(message.imageURL)}
                                 />
                             ) : (
-                                <div className="message-text">{message.text}</div>
+                                <Linkify
+                                    componentDecorator={(decoratedHref, decoratedText, key) => (
+                                        <a target="blank" href={decoratedHref} key={key}>
+                                            {decoratedText}
+                                        </a>
+                                    )}
+                                >
+                                    {message.text}
+                                </Linkify>
+
                             )}
                             <span className="timestamp">{formatTimestamp(message.timestamp)}</span>
                         </div>
