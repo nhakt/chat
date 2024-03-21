@@ -33,6 +33,8 @@ const db = firebase.firestore(app);
 //strage
 const storage = firebase.storage();
 
+const PAGE_SIZE = 50;
+
 const ChatApp = () => {
     const [user, setUser] = useState(null);
     const [message, setMessage] = useState('');
@@ -46,11 +48,44 @@ const ChatApp = () => {
         setIsNotificationEnabled((prev) => !prev);
     };
 
+    //pagenate
+    const [currentPage, setCurrentPage] = useState(0);
+    const [totalPages, setTotalPages] = useState(0);
+
     useEffect(() => {
-        const unsubscribe = db.collection('messages').orderBy('timestamp').onSnapshot((snapshot) => {
+        const unsubscribe = db.collection('messages').orderBy('timestamp', 'desc').onSnapshot((snapshot) => {
+            const allMessages = snapshot.docs.map((doc) => ({
+                id: doc.id,
+                ...doc.data(),
+            }));
+
+            const totalMessages = allMessages.length;
+            const totalPages = Math.ceil(totalMessages / PAGE_SIZE);
+            setTotalPages(totalPages);
+
+            const startIndex = currentPage * PAGE_SIZE;
+            const endIndex = startIndex + PAGE_SIZE;
+            const newMessages = allMessages.slice(startIndex, endIndex);
+
+            setMessages(newMessages);
+        });
+
+        return unsubscribe;
+    }, [currentPage]);
+
+    const handleNextPage = () => {
+        setCurrentPage((prevPage) => prevPage + 1);
+    };
+
+    const handlePrevPage = () => {
+        setCurrentPage((prevPage) => prevPage - 1);
+    };
+
+
+    useEffect(() => {
+        const unsubscribe = db.collection('messages').orderBy('timestamp', 'desc').limit(PAGE_SIZE).onSnapshot((snapshot) => {
             const newMessages = snapshot.docs.map((doc) => ({
                 id: doc.id,
-                message: doc.message,
                 ...doc.data(),
             }));
             setMessages(newMessages);
@@ -108,9 +143,7 @@ const ChatApp = () => {
             const uploadTask = storage.ref(`images/${image.name}`).put(image);
             uploadTask.on(
                 'state_changed',
-                (snapshot) => {
-                    // アップロード進捗状況の取得
-                },
+                (snapshot) => { },
                 (error) => {
                     console.error('画像のアップロードに失敗しました', error);
                 },
@@ -144,12 +177,8 @@ const ChatApp = () => {
 
     //image
     const handlePaste = (e) => {
-        console.log("call handlePaste")
         const clipboardData = e.clipboardData || window.clipboardData;
         const items = clipboardData.items;
-
-        console.log("clipboardData: " + clipboardData)
-        console.log("items: " + items)
 
         for (let i = 0; i < items.length; i++) {
             const item = items[i];
@@ -176,6 +205,10 @@ const ChatApp = () => {
     };
 
     const MessageList = ({ messages }) => {
+        if (!messages || messages.length === 0) {
+            return <div>メッセージがありません。</div>;
+        }
+
         return (
             <div>
                 {messages.map((message) => (
@@ -195,7 +228,23 @@ const ChatApp = () => {
                             <span className="timestamp">{formatTimestamp(message.timestamp)}</span>
                         </div>
                     </div>
-                )).reverse()}
+                ))}
+                <Pagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    onNextPage={handleNextPage}
+                    onPrevPage={handlePrevPage}
+                />
+            </div>
+        );
+    };
+
+    const Pagination = ({ currentPage, totalPages, onNextPage, onPrevPage }) => {
+        return (
+            <div>
+                <button onClick={onPrevPage} disabled={currentPage === 0}>Previous</button>
+                <span>{currentPage + 1}/{totalPages}</span>
+                <button onClick={onNextPage} disabled={currentPage === totalPages - 1}>Next</button>
             </div>
         );
     };
@@ -230,7 +279,7 @@ const ChatApp = () => {
                             onChange={(e) => setPassword(e.target.value)}
                         />
                         <br />
-                        <button class="button-field-login" type="submit">ログイン</button>
+                        <button className="button-field-login" type="submit">ログイン</button>
                     </form>
                 </div>
             ) : (
@@ -259,7 +308,7 @@ const ChatApp = () => {
                             </div>
                         )}
                         <input
-                            class="input-field-file"
+                            className="input-field-file"
                             id="f"
                             type="file"
                             accept="image/*"
