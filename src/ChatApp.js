@@ -340,6 +340,7 @@ const ChatApp = () => {
                     )}
                 </div>
             )}
+            <span className="timestamp">v1.2</span>
         </div>
     );
 };
