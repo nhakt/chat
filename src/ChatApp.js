@@ -42,6 +42,7 @@ const ChatApp = () => {
     const [messages, setMessages] = useState([]);
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
+    const [email, setEmail] = useState('');
 
     //notify
     const [isNotificationEnabled, setIsNotificationEnabled] = useState(true);
@@ -268,30 +269,42 @@ const ChatApp = () => {
         }
     };
 
+    //login/logout
+    const handleLogin = async (e) => {
+        e.preventDefault();
+
+        try {
+            await firebase.auth().signInWithEmailAndPassword(email, password);
+            setUser(firebase.auth().currentUser);
+            isLogin = true;
+        } catch (error) {
+            console.error('ログインエラー:', error);
+            alert('ログインに失敗しました。メールアドレスとパスワードを確認してください。');
+        }
+    };
+
+    const handleLogout = async () => {
+        try {
+            await firebase.auth().signOut();
+            setUser(null);
+            isLogin = false;
+        } catch (error) {
+            console.error('ログアウトエラー:', error);
+        }
+    };
+
     return (
         <div>
             {!user ? (
-                <div>
-                    <h1>ログイン</h1>
-                    <form onSubmit={handleSubmit}>
-                        <input
-                            className="input-field"
-                            type="text"
-                            placeholder="ユーザ名"
-                            value={username}
-                            onChange={(e) => setUsername(e.target.value)}
-                        />
-                        <input
-                            className="input-field"
-                            type="password"
-                            placeholder="パスワード"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                        />
-                        <br />
-                        <button className="button-field-login" type="submit">ログイン</button>
-                    </form>
-                </div>
+                <LoginForm
+                    username={username}
+                    setUsername={setUsername}
+                    email={email}
+                    setEmail={setEmail}
+                    password={password}
+                    setPassword={setPassword}
+                    handleLogin={handleLogin}
+                />
             ) : (
                 <div>
                     <h1>チャット</h1>
@@ -328,6 +341,7 @@ const ChatApp = () => {
                     <div>
                         <MessageList messages={messages} />
                     </div>
+                    <button onClick={handleLogout}>ログアウト</button>
                     {showImageModal && (
                         <div className="image-modal">
                             <div className="image-modal-content">
@@ -340,7 +354,42 @@ const ChatApp = () => {
                     )}
                 </div>
             )}
-            <span className="timestamp">v1.2</span>
+            <span className="timestamp">v1.3</span>
+        </div>
+    );
+};
+
+const LoginForm = ({ username, setUsername, email, setEmail, password, setPassword, handleLogin }) => {
+    return (
+        <div>
+            <h1>ログイン</h1>
+            <form onSubmit={handleLogin}>
+                <input
+                    className="input-field"
+                    type="text"
+                    placeholder="ユーザ名"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                />
+                <input
+                    className="input-field"
+                    type="email"
+                    placeholder="メールアドレス"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                />
+                <input
+                    className="input-field"
+                    type="password"
+                    placeholder="パスワード"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                />
+                <br />
+                <button className="button-field-login" type="submit">
+                    ログイン
+                </button>
+            </form>
         </div>
     );
 };
